@@ -1,0 +1,24 @@
+
+.container {
+  display: grid;
+  grid-template-areas:
+    "i i i"
+    "i i i"
+    "i i i"
+    "b . s"
+}
+
+.icon {
+   grid-area: i;
+
+   align-self: center;
+   justify-self: center;
+}
+
+.balance {
+   grid-area: b;
+}
+
+.send {
+   grid-area: s;
+}
