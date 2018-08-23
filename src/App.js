@@ -13,8 +13,6 @@ import delay from 'delay'
 import 'antd/dist/antd.css'
 import './App.css'
 
-
-
 const API_URI = 'http://internship-jp1.interlink.or.jp/api'
 const fast = { ...config.stiff, restSpeedThreshold: 1, restDisplacementThreshold: 0.01 }
 
@@ -22,7 +20,7 @@ const fast = { ...config.stiff, restSpeedThreshold: 1, restDisplacementThreshold
 const Sidebar = Keyframes.Spring({
   // Slots can take arrays/chains,
   peek: [
-    { delay: 800, from: { x: -100 }, to: { x: 35 }, config: config.slow }
+    { delay: 800, from: { x: -100 }, to: { x: 0 }, config: config.slow }
   ],
   // single items,
   open: { to: { x: 0 }, config: config.default },
@@ -31,14 +29,6 @@ const Sidebar = Keyframes.Spring({
     await delay(400)
     await call({ to: { x: -100 }, config: config.gentle })
   }
-})
-
-const Content = Keyframes.Trail({
-  peek: [
-    { delay: 1000, from: { x: -100, opacity: 0 }, to: { x: 0, opacity: 1 } }
-  ],
-  open: { delay: 100, to: { x: 0, opacity: 1 } },
-  close: { to: { x: -100, opacity: 0 } }
 })
 
 class App extends React.Component {
@@ -116,22 +106,29 @@ class App extends React.Component {
     setInterval(this.update, 1000);
     return (
       <Fragment>
-        <div class="title">
-          <div class="center">
+        <div className="title">
+          <div className="center">
               <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
               <p className="text" > Sovol Coin </p>
-            </div>
+          </div>
         </div>
 
         <Sidebar native state={state}>
           {({ x }) => (
-            <animated.div className="sidebar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
-              <p>{this.state.balance}</p>
-              <p>{this.state.updateTime}</p>
-              <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-              <Button color='inherit' onClick={this.loginOpen}>Login</Button>
-            </animated.div>
-          )}
+              <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
+              
+
+
+
+
+                <div className="contents">
+                  <p>{this.state.balance}</p>
+                  <p>{this.state.updateTime}</p>
+                  <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+                  <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+                </div>
+              </animated.div>
+            )}
         </Sidebar>
 
          <Dialog
