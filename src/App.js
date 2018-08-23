@@ -1,8 +1,5 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import {withStyles} from '@material-ui/core/styles'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
+import React, { Fragment } from 'react'
+import ReactDOM from 'react-dom'
 import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
@@ -11,33 +8,42 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import TextField from '@material-ui/core/TextField'
-
-//import IconButton from '@material-ui/core/IconButton'
-//import MenuIcon from '@material-ui/icons/Menu'
+import { Keyframes, animated, config } from 'react-spring'
+import delay from 'delay'
+import 'antd/dist/antd.css'
 import './App.css'
 
+
+
 const API_URI = 'http://internship-jp1.interlink.or.jp/api'
+const fast = { ...config.stiff, restSpeedThreshold: 1, restDisplacementThreshold: 0.01 }
 
-const styles = {
-  root: {
-    flexGrow: 1,
-  },
-  flex: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginLeft: -12,
-    marginRight: 20,
-  },
-}
+// Creates a spring with predefined animation slots
+const Sidebar = Keyframes.Spring({
+  // Slots can take arrays/chains,
+  peek: [
+    { delay: 800, from: { x: -100 }, to: { x: 35 }, config: config.slow }
+  ],
+  // single items,
+  open: { to: { x: 0 }, config: config.default },
+  // or async functions with side-effects
+  close: async call => {
+    await delay(400)
+    await call({ to: { x: -100 }, config: config.gentle })
+  }
+})
 
+const Content = Keyframes.Trail({
+  peek: [
+    { delay: 1000, from: { x: -100, opacity: 0 }, to: { x: 0, opacity: 1 } }
+  ],
+  open: { delay: 100, to: { x: 0, opacity: 1 } },
+  close: { to: { x: -100, opacity: 0 } }
+})
 
 class App extends React.Component {
-
-  constructor(props)
-  {
+  constructor(props){
     super(props)
-
     this.state = {
       balance: 200,
       immatureBalance: 50,
@@ -72,8 +78,7 @@ class App extends React.Component {
       const j = await fetch(`${API_URI}/sendmoney/${id}/${this.state.key}/${amount}/${target}`).then(x => x.json())
       this.setState({balance: j.balance})
     }
-    catch(e)
-    {
+    catch(e){
       console.log(e)
     }
   }
@@ -99,31 +104,40 @@ class App extends React.Component {
     console.log(this.state.id)
     this.setState({ sendOpen: false })
   }
+  update = () => {
+    console.log('onUpdate')
+    this.setState({updateTime: new Date().getSeconds()})
+  }
 
-  render()
-  {
-    const {classes} = this.props
+  state = { open: undefined, updateTime: new Date().getSeconds() }
+  toggle = () => this.setState(state => ({ open: !state.open }))
+  render() {
+    const state = this.state.open === undefined ? 'peek' : this.state.open ? 'open' : 'close'
+    setInterval(this.update, 1000);
     return (
-      <div className={classes.root}>
-        <AppBar position='static'>
-          <Toolbar>
-            <Typography variant='title' color='inherit' className={classes.flex}>
-                SovoloCoin
-            </Typography>
-            <Button color='inherit' onClick={this.loginOpen}>Login</Button>
-          </Toolbar>
-        </AppBar>
-        <div className='container'>
-          <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
-          <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVL</Typography>
-          <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+      <Fragment>
+        <div class="title">
+          <div class="center">
+              <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
+              <p className="text" > Sovol Coin </p>
+            </div>
         </div>
 
-        <Dialog
+        <Sidebar native state={state}>
+          {({ x }) => (
+            <animated.div className="sidebar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
+              <p>{this.state.balance}</p>
+              <p>{this.state.updateTime}</p>
+              <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+              <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+            </animated.div>
+          )}
+        </Sidebar>
+
+         <Dialog
           open={this.state.sendOpen}
           onClose={this.sendClose}
-          aria-labelledby="form-dialog-title"
-        >
+          aria-labelledby="form-dialog-title">
           <DialogTitle id="form-dialog-title">Transfer</DialogTitle>
           <DialogContent>
             <TextField
@@ -155,13 +169,11 @@ class App extends React.Component {
               Send
             </Button>
           </DialogActions>
-        </Dialog>
-
+        </Dialog>  
         <Dialog
           open={this.state.loginOpen}
           onClose={this.loginClose}
-          aria-labelledby="form-dialog-title"
-        >
+          aria-labelledby="form-dialog-title">
           <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
           <DialogContent>
             <DialogContentText>
@@ -185,10 +197,33 @@ class App extends React.Component {
               Subscribe
             </Button>
           </DialogActions>
-        </Dialog>
-      </div>
+        </Dialog>    
+      </Fragment>
     )
   }
 }
 
-export default withStyles(styles)(App)
+export default App
+
+
+/*
+      <div className={classes.root}>
+        <AppBar position='static'>
+          <Toolbar>
+            <Typography variant='title' color='inherit' className={classes.flex}>
+                SovoloCoin
+            </Typography>
+            <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+          </Toolbar>
+        </AppBar>
+        <div className='container'>
+          <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
+          <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVL</Typography>
+          <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+        </div>
+
+       
+
+
+      </div>
+*/

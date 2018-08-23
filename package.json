@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^1.5.0",
+    "antd": "^3.8.2",
+    "delay": "^3.1.0",
     "node-fetch": "^2.2.0",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
