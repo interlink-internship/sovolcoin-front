@@ -40,8 +40,8 @@ class App extends React.Component {
   constructor(props){
     super(props)
 
-    const id = localStorage.getItem('id') | null
-    const key = localStorage.getItem('key') | null
+    const id = localStorage.getItem('id') || null
+    const key = localStorage.getItem('key') || null
 
     this.state = {
       id : id,
@@ -83,8 +83,8 @@ class App extends React.Component {
       //localStorage.setItem('id', 'itleigns')
       //const id = localStorage.getItem('id')
       //console.log(id)
-      const j = await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`).then(x => x.json())
       console.log(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
+      await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
       //this.setState({balance: j.balance})
     }
     catch(e){
@@ -136,8 +136,8 @@ class App extends React.Component {
   logout = () =>
   {
     this.setState({id: null, key: null})
-    localStorage.setItem('id', null)
-    localStorage.setItem('key', null)
+    localStorage.removeItem('id')
+    localStorage.removeItem('key')
   }
 
   sendOpen = () =>
@@ -210,30 +210,31 @@ class App extends React.Component {
               <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
                 <div className="contents">
                   <div className="switch">
-                      {(()=>{
-                        if (this.state.id != null)
-                        {
-                          return <Button color='inherit' onClick={this.logout}>Logout</Button>
-                        }
-                        else
-                        {
-                          return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
-                        }
-                      })()}
-                  </div>
-                  {(() =>
-                    {
+                    {(()=>{
                       if (this.state.id != null)
                       {
-                        return (
-                          <div className="balance">
-                            <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
-                            <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
-                            <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-                          </div>
-                        )
+                        return <Button color='inherit' onClick={this.logout}>Logout</Button>
                       }
-                    })()}
+                      else
+                      {
+                        return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+                      }
+                  })()}
+                  </div>
+                  {(() =>
+                  {
+                    if (this.state.id != null)
+                    {
+                      return (
+                        <div>
+                        <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+                        <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
+                        <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+                        <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+                        </div>
+                      )
+                    }
+                  })()}
                 </div>
               </animated.div>
             )}
