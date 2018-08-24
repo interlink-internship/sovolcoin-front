@@ -1,8 +1,11 @@
 import React, { Fragment } from 'react'
 import ReactDOM from 'react-dom'
+import {withStyles} from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
+import AppBar from '@material-ui/core/AppBar'
+import Toolbar from '@material-ui/core/Toolbar'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
@@ -34,32 +37,51 @@ const Sidebar = Keyframes.Spring({
   }
 })
 
+const styles = {
+  root: {
+    flexGrow: 1,
+  },
+  flex: {
+    flexGrow: 1,
+  },
+  menuButton: {
+    marginLeft: -12,
+    marginRight: 20,
+  },
+}
+
 class App extends React.Component {
   constructor(props){
     super(props)
+
+    const id = localStorage.getItem('id') | null
+    const key = localStorage.getItem('key') | null
+
     this.state = {
-      id : 'yosiki',
-      key: '114514',
-      balance: 200,
-      immatureBalance: 50,
+      id : id,
+      key: key,
       loginOpen: false,
       sendOpen: false,
-      myQRCodeOpen: false
     }
   }
 
   async componentDidMount()
   {
+    this.timer = setInterval(()=> this.fetchBlance(), 5000)
   }
 
-  async fetchBlance(e)
+  componentWillUnmount() {
+    this.timer = null
+  }
+
+  async fetchBlance()
   {
     try
     {
-      localStorage.setItem('id', 'itleigns')
-      const id = localStorage.getItem('id')
-      console.log(id)
-      const j = await fetch(`${API_URI}/getbalance/${id}`).then(x => x.json())
+      //localStorage.setItem('id', 'itleigns')
+      //const id = localStorage.getItem('id')
+      //console.log(id)
+      const j = await fetch(`${API_URI}/getbalance/${this.state.id}`).then(x => x.json())
       this.setState({balance: j.balance})
     }
     catch(e)
@@ -72,11 +94,12 @@ class App extends React.Component {
   {
     try
     {
-      localStorage.setItem('id', 'itleigns')
-      const id = localStorage.getItem('id')
-      console.log(id)
-      const j = await fetch(`${API_URI}/sendmoney/${id}/${this.state.key}/${amount}/${target}`).then(x => x.json())
-      this.setState({balance: j.balance})
+      //localStorage.setItem('id', 'itleigns')
+      //const id = localStorage.getItem('id')
+      //console.log(id)
+      const j = await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`).then(x => x.json())
+      console.log(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
+      //this.setState({balance: j.balance})
     }
     catch(e){
       console.log(e)
@@ -96,12 +119,17 @@ class App extends React.Component {
         return
       }
 
-      let scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
+      const scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
       scanner.addListener('scan', (content) =>
       {
-        console.log(content)
+        const j = JSON.parse(content)
+        this.setState({id: j.id, key: j.key})
+        localStorage.setItem('id', j.id)
+        localStorage.setItem('key', j.key)
+        this.loginClose()
       })
       scanner.start(cameras[0])
+      this.scanner = scanner
     }
     catch(e)
     {
@@ -111,7 +139,19 @@ class App extends React.Component {
 
   loginClose = () =>
   {
+    if (this.scanner)
+    {
+      this.scanner.stop()
+      this.scanner = null
+    }
     this.setState({ loginOpen: false })
+  }
+
+  logout = () =>
+  {
+    this.setState({id: null, key: null})
+    localStorage.setItem('id', null)
+    localStorage.setItem('key', null)
   }
 
   sendOpen = () =>
@@ -121,8 +161,7 @@ class App extends React.Component {
 
   sendClose = () =>
   {
-    console.log(this.state.amount)
-    console.log(this.state.id)
+    this.sendMoney(this.state.target, this.state.amount)
     this.setState({ sendOpen: false })
   }
   update = () => {
@@ -132,14 +171,38 @@ class App extends React.Component {
 
   state = { open: undefined, updateTime: new Date().getSeconds() }
   toggle = () => this.setState(state => ({ open: !state.open }))
-  myQRCodeOpen = () =>
+
+  loginClose = () =>
   {
-    this.setState({ myQRCodeOpen: true })
+    if (this.scanner)
+    {
+      this.scanner.stop()
+      this.scanner = null
+    }
+    this.setState({ loginOpen: false })
   }
 
-  myQRCodeClose = () =>
+  logout = () =>
   {
-    this.setState({ myQRCodeOpen: false })
+    this.setState({id: null, key: null})
+    localStorage.setItem('id', null)
+    localStorage.setItem('key', null)
+  }
+
+  sendOpen = () =>
+  {
+    this.setState({ sendOpen: true })
+  }
+
+  sendClose = () =>
+  {
+    this.sendMoney(this.state.target, this.state.amount)
+    this.setState({ sendOpen: false })
+  }
+
+  sendCancel = () =>
+  {
+    this.setState({ sendOpen: false })
   }
 
   render()
@@ -155,6 +218,37 @@ class App extends React.Component {
               <p className="text" > Sovol Coin </p>
           </div>
         </div>
+      <div>
+        <AppBar position='static'>
+          <Toolbar>
+            <Typography variant='title' color='inherit' className={classes.flex}>
+                SovoloCoin
+            </Typography>
+            {(()=>{
+              if (this.state.id != null)
+              {
+                return <Button color='inherit' onClick={this.logout}>Logout</Button>
+              }
+              else
+              {
+                return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+              }
+            })()}
+          </Toolbar>
+        </AppBar>
+        {(() =>
+        {
+          if (this.state.id != null)
+          {
+            return (
+              <div>
+              <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+              <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+              <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+              </div>
+            )
+          }
+        })()}
 
         <Sidebar native state={state}>
           {({ x }) => (
@@ -179,12 +273,12 @@ class App extends React.Component {
             <TextField
               autoFocus
               margin='dense'
-              id='id'
-              label='id'
+              id='target'
+              label='target'
               type='text'
               fullWidth
-              value={this.state.id}
-              onChange={(e) => this.setState({id: e.target.value})}
+              value={this.state.target}
+              onChange={(e) => this.setState({target: e.target.value})}
             />
             <TextField
               autoFocus
@@ -198,7 +292,7 @@ class App extends React.Component {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.sendClose} color='primary'>
+            <Button onClick={this.sendCancel} color='primary'>
               Cancel
             </Button>
             <Button onClick={this.sendClose} color='primary'>
@@ -210,7 +304,8 @@ class App extends React.Component {
           open={this.state.loginOpen}
           onClose={this.loginClose}
           aria-labelledby="form-dialog-title">
-          <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+
+          <DialogTitle id="form-dialog-title">Login</DialogTitle>
           <DialogContent>
             <video id='preview' autoPlay className="active"></video>
           </DialogContent>
@@ -220,46 +315,10 @@ class App extends React.Component {
             </Button>
           </DialogActions>
         </Dialog>
-
-        <Dialog
-          open={this.state.myQRCodeOpen}
-          onClose={this.myQRCodeClose}
-          aria-labelledby="form-dialog-title"
-        >
-          <DialogTitle id="form-dialog-title">MY QR CODE</DialogTitle>
-          <DialogContent>
-            <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.myQRCodeClose} color='primary'> Close </Button>
-          </DialogActions>
-        </Dialog>    
+        </div>
       </Fragment>
     )
   }
 }
 
-export default App
-
-
-/*
-      <div className={classes.root}>
-        <AppBar position='static'>
-          <Toolbar>
-            <Typography variant='title' color='inherit' className={classes.flex}>
-                SovoloCoin
-            </Typography>
-            <Button color='inherit' onClick={this.loginOpen}>Login</Button>
-          </Toolbar>
-        </AppBar>
-        <div className='container'>
-          <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
-          <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVL</Typography>
-          <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-        </div>
-
-       
-
-
-      </div>
-*/
+export default withStyles(styles)(App)
