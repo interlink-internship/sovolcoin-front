@@ -1,16 +1,19 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React, { Fragment } from 'react'
+import ReactDOM from 'react-dom'
 import {withStyles} from '@material-ui/core/styles'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
+import AppBar from '@material-ui/core/AppBar'
+import Toolbar from '@material-ui/core/Toolbar'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import TextField from '@material-ui/core/TextField'
+import { Keyframes, animated, config } from 'react-spring'
+import delay from 'delay'
+import 'antd/dist/antd.css'
 import Instascan from 'instascan'
 import QRCode from 'qrcode.react'
 
@@ -18,24 +21,23 @@ import './App.css'
 
 const API_URI = 'http://internship-jp1.interlink.or.jp/api'
 
-const styles = {
-  root: {
-    flexGrow: 1,
-  },
-  flex: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginLeft: -12,
-    marginRight: 20,
-  },
-}
-
+// Creates a spring with predefined animation slots
+const Sidebar = Keyframes.Spring({
+  // Slots can take arrays/chains,
+  peek: [
+    { delay: 800, from: { x: -100 }, to: { x: 0 }, config: config.slow }
+  ],
+  // single items,
+  open: { to: { x: 0 }, config: config.default },
+  // or async functions with side-effects
+  close: async call => {
+    await delay(400)
+    await call({ to: { x: -100 }, config: config.gentle })
+  }
+})
 
 class App extends React.Component {
-
-  constructor(props)
-  {
+  constructor(props){
     super(props)
 
     const id = localStorage.getItem('id') || null
@@ -85,8 +87,7 @@ class App extends React.Component {
       await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
       //this.setState({balance: j.balance})
     }
-    catch(e)
-    {
+    catch(e){
       console.log(e)
     }
   }
@@ -150,6 +151,37 @@ class App extends React.Component {
     this.setState({ sendOpen: false })
   }
 
+  state = { open: undefined, updateTime: new Date().getSeconds() }
+  toggle = () => this.setState(state => ({ open: !state.open }))
+
+  loginClose = () =>
+  {
+    if (this.scanner)
+    {
+      this.scanner.stop()
+      this.scanner = null
+    }
+    this.setState({ loginOpen: false })
+  }
+
+  logout = () =>
+  {
+    this.setState({id: null, key: null})
+    localStorage.setItem('id', null)
+    localStorage.setItem('key', null)
+  }
+
+  sendOpen = () =>
+  {
+    this.setState({ sendOpen: true })
+  }
+
+  sendClose = () =>
+  {
+    this.sendMoney(this.state.target, this.state.amount)
+    this.setState({ sendOpen: false })
+  }
+
   sendCancel = () =>
   {
     this.setState({ sendOpen: false })
@@ -158,45 +190,74 @@ class App extends React.Component {
   render()
   {
     const {classes} = this.props
+    const state = this.state.open === undefined ? 'peek' : this.state.open ? 'open' : 'close'
     return (
-      <div className={classes.root}>
-        <AppBar position='static'>
-          <Toolbar>
-            <Typography variant='title' color='inherit' className={classes.flex}>
-                SovoloCoin
-            </Typography>
-            {(()=>{
-              if (this.state.id != null)
-              {
-                return <Button color='inherit' onClick={this.logout}>Logout</Button>
-              }
-              else
-              {
-                return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
-              }
-            })()}
-          </Toolbar>
-        </AppBar>
-        {(() =>
-        {
-          if (this.state.id != null)
-          {
-            return (
-              <div>
-              <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
-              <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
-              <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
-              <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-              </div>
-            )
-          }
-        })()}
+      <Fragment>
+        <div className="title">
+          <div className="center">
+              <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
+              <p className="text" > Sovol Coin </p>
+          </div>
+        </div>
 
-        <Dialog
+        <Sidebar native state={state}>
+          {({ x }) => (
+              <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
+                <div className="contents">
+                  <div className="name">
+                    Sovol Coin
+                  </div>
+
+                  <div className="switch">
+                    {(()=>{
+                      if (this.state.id != null)
+                      {
+                          return <React.Fragment className="switchBox">
+                              <div className="qrCodeBox">
+                                <QRCode className="qrCode" renderAs='svg' value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+                              </div>
+                              <div className="logoutBox">
+                                <Button className="logio" variant="outlined" color="primary" onClick={this.logout}>Logout</Button>
+                              </div>
+                            </React.Fragment>
+                      }
+                      else
+                      {
+                        return <React.Fragment className="switchBox">
+                                <Button className="logio" variant="outlined" color="secondary" onClick={this.loginOpen}>
+                                  Login
+                                </Button>
+                              </React.Fragment>
+                      }
+                    })()}
+                  </div>
+
+                  <div className="info">
+                  {(() =>
+                  {
+                    if (this.state.id != null)
+                    {
+                      return  <React.Fragment className="infoBox">
+                          <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
+                          <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+                          <Button className="send" variant="outlined" color="secondary" onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+                        </React.Fragment>
+                    } else {
+                      return <React.Fragment className="infoBox">
+
+                      </React.Fragment>
+                    }
+                  })()}
+                  </div>
+                </div>
+              </animated.div>
+            )}
+        </Sidebar>
+
+         <Dialog
           open={this.state.sendOpen}
           onClose={this.sendClose}
-          aria-labelledby="form-dialog-title"
-        >
+          aria-labelledby="form-dialog-title">
           <DialogTitle id="form-dialog-title">Transfer</DialogTitle>
           <DialogContent>
             <TextField
@@ -228,13 +289,12 @@ class App extends React.Component {
               Send
             </Button>
           </DialogActions>
-        </Dialog>
-
+        </Dialog>  
         <Dialog
           open={this.state.loginOpen}
           onClose={this.loginClose}
-          aria-labelledby="form-dialog-title"
-        >
+          aria-labelledby="form-dialog-title">
+
           <DialogTitle id="form-dialog-title">Login</DialogTitle>
           <DialogContent>
             <video id='preview' autoPlay className="active"></video>
@@ -245,10 +305,9 @@ class App extends React.Component {
             </Button>
           </DialogActions>
         </Dialog>
-
-      </div>
+      </Fragment>
     )
   }
 }
 
-export default withStyles(styles)(App)
+export default App

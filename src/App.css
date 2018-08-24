@@ -1,24 +1,139 @@
-
-.container {
-  display: grid;
-  grid-template-areas:
-    "i i i"
-    "i i i"
-    "i i i"
-    "b . s"
+* {
+  box-sizing: border-box;
 }
 
-.icon {
-   grid-area: i;
-
-   align-self: center;
-   justify-self: center;
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  background: #2b4b64;
+  overflow: hidden;
 }
 
-.balance {
-   grid-area: b;
+
+.title {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 0;
+ }
+
+div.title .center {
+  margin-top: 15%;
+  margin-bottom: 15%;
+  width: 50%;
+  height: 70%;
+  min-width: 280px;
+  max-width: 1020px;
+}
+
+div.center .icon {
+  height: auto;
+  width: 100%;
+}
+
+div.center .text {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: auto;
+  color: rgba(0,0,0,0.6);
+  font-size: 3vw;
+}
+
+.sideBar {
+  background-color: rgba(255,0,0,0);
+  width: 100%;
+  height: 94%;
+
+  margin-top: 3%;
+  margin-bottom: 3%;
+}
+
+.contents {
+  overflow: hidden;
+
+  padding-top: 5vw;
+  padding-bottom: 5vw;
+
+  /*centering*/
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+
+  height: 100%;
+  width: 60%;
+  min-width: 280px;
+  max-width: 1020px;
+  background: white;
+  -webkit-border-radius: 20px;  
+  -moz-border-radius: 20px; 
+}
+
+.name {
+  height: auto;
+  width: 100%;
+  text-align: center;
+  font-size: 2vw;
+  margin-top: 5vw;
+  margin-bottom: 3vw;
+}
+
+.switch {
+  height: auto;
+  width: 100%;
+  text-align: center;
+  margin-top: 2vw;
+  margin-bottom: 10vw;
+}
+
+.info {
+  height: auto;
+  width: 100%;
+  text-align: center;
+
+  margin-top: 10vw;
+  margin-bottom: 5vw;
+}
+
+.qrCode {
+  width: 95%;
+  height: 95%;
+  max-width: 500px;
+  max-height: 500px;
+}
+
+.logio {
+  width: 95%;
+  max-width: 500px;
 }
 
 .send {
-   grid-area: s;
+  width: 95%;
+  max-width: 500px;
 }
+
+
+
+.balance {
+  width: 100%;
+  height: 100%;
+}
+
+.toggle {
+  position: absolute;
+  margin: 40px;
+  color: #dfdfdf;
+  z-index: 100;
+  font-size: 2em;
+  cursor: pointer;
+}
+
