@@ -20,7 +20,6 @@ import QRCode from 'qrcode.react'
 import './App.css'
 
 const API_URI = 'http://internship-jp1.interlink.or.jp/api'
-const fast = { ...config.stiff, restSpeedThreshold: 1, restDisplacementThreshold: 0.01 }
 
 // Creates a spring with predefined animation slots
 const Sidebar = Keyframes.Spring({
@@ -36,19 +35,6 @@ const Sidebar = Keyframes.Spring({
     await call({ to: { x: -100 }, config: config.gentle })
   }
 })
-
-const styles = {
-  root: {
-    flexGrow: 1,
-  },
-  flex: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginLeft: -12,
-    marginRight: 20,
-  },
-}
 
 class App extends React.Component {
   constructor(props){
@@ -218,47 +204,36 @@ class App extends React.Component {
               <p className="text" > Sovol Coin </p>
           </div>
         </div>
-      <div>
-        <AppBar position='static'>
-          <Toolbar>
-            <Typography variant='title' color='inherit' className={classes.flex}>
-                SovoloCoin
-            </Typography>
-            {(()=>{
-              if (this.state.id != null)
-              {
-                return <Button color='inherit' onClick={this.logout}>Logout</Button>
-              }
-              else
-              {
-                return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
-              }
-            })()}
-          </Toolbar>
-        </AppBar>
-        {(() =>
-        {
-          if (this.state.id != null)
-          {
-            return (
-              <div>
-              <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
-              <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
-              <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-              </div>
-            )
-          }
-        })()}
 
         <Sidebar native state={state}>
           {({ x }) => (
               <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
                 <div className="contents">
-                  <p>{this.state.balance}</p>
-                  <p>{this.state.updateTime}</p>
-                  <Button color='secondary' onClick={this.myQRCodeOpen} className='send'>MyQRCode</Button>
-                  <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-                  <Button color='inherit' onClick={() => {this.loginOpen()}}>Login</Button>
+                  <div className="switch">
+                      {(()=>{
+                        if (this.state.id != null)
+                        {
+                          return <Button color='inherit' onClick={this.logout}>Logout</Button>
+                        }
+                        else
+                        {
+                          return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+                        }
+                      })()}
+                  </div>
+                  {(() =>
+                    {
+                      if (this.state.id != null)
+                      {
+                        return (
+                          <div className="balance">
+                            <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+                            <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+                            <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+                          </div>
+                        )
+                      }
+                    })()}
                 </div>
               </animated.div>
             )}
@@ -315,10 +290,9 @@ class App extends React.Component {
             </Button>
           </DialogActions>
         </Dialog>
-        </div>
       </Fragment>
     )
   }
 }
 
-export default withStyles(styles)(App)
+export default App
