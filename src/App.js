@@ -38,8 +38,8 @@ class App extends React.Component {
   {
     super(props)
 
-    const id = localStorage.getItem('id') | null
-    const key = localStorage.getItem('key') | null
+    const id = localStorage.getItem('id') || null
+    const key = localStorage.getItem('key') || null
 
     this.state = {
       id : id,
@@ -135,8 +135,8 @@ class App extends React.Component {
   logout = () =>
   {
     this.setState({id: null, key: null})
-    localStorage.setItem('id', null)
-    localStorage.setItem('key', null)
+    localStorage.removeItem('id')
+    localStorage.removeItem('key')
   }
 
   sendOpen = () =>
