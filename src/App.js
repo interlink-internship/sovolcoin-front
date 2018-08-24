@@ -11,6 +11,9 @@ import TextField from '@material-ui/core/TextField'
 import { Keyframes, animated, config } from 'react-spring'
 import delay from 'delay'
 import 'antd/dist/antd.css'
+import Instascan from 'instascan'
+import QRCode from 'qrcode.react'
+
 import './App.css'
 
 const API_URI = 'http://internship-jp1.interlink.or.jp/api'
@@ -35,11 +38,18 @@ class App extends React.Component {
   constructor(props){
     super(props)
     this.state = {
+      id : 'yosiki',
+      key: '114514',
       balance: 200,
       immatureBalance: 50,
       loginOpen: false,
-      sendOpen: false
+      sendOpen: false,
+      myQRCodeOpen: false
     }
+  }
+
+  async componentDidMount()
+  {
   }
 
   async fetchBlance(e)
@@ -73,9 +83,30 @@ class App extends React.Component {
     }
   }
 
-  loginOpen = () =>
+  loginOpen = async () =>
   {
-    this.setState({ loginOpen: true })
+    try
+    {
+      this.setState({ loginOpen: true })
+
+      const cameras = await Instascan.Camera.getCameras()
+      if (cameras.length === 0)
+      {
+        console.error('No cameras found.')
+        return
+      }
+
+      let scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
+      scanner.addListener('scan', (content) =>
+      {
+        console.log(content)
+      })
+      scanner.start(cameras[0])
+    }
+    catch(e)
+    {
+      console.log(e)
+    }
   }
 
   loginClose = () =>
@@ -101,7 +132,19 @@ class App extends React.Component {
 
   state = { open: undefined, updateTime: new Date().getSeconds() }
   toggle = () => this.setState(state => ({ open: !state.open }))
-  render() {
+  myQRCodeOpen = () =>
+  {
+    this.setState({ myQRCodeOpen: true })
+  }
+
+  myQRCodeClose = () =>
+  {
+    this.setState({ myQRCodeOpen: false })
+  }
+
+  render()
+  {
+    const {classes} = this.props
     const state = this.state.open === undefined ? 'peek' : this.state.open ? 'open' : 'close'
     setInterval(this.update, 1000);
     return (
@@ -112,20 +155,16 @@ class App extends React.Component {
               <p className="text" > Sovol Coin </p>
           </div>
         </div>
+        <Button color='secondary' onClick={this.myQRCodeOpen} className='send' >MyQRCode</Button>
 
         <Sidebar native state={state}>
           {({ x }) => (
               <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
-              
-
-
-
-
                 <div className="contents">
                   <p>{this.state.balance}</p>
                   <p>{this.state.updateTime}</p>
                   <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-                  <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+                  <Button color='inherit' onClick={() => {this.loginOpen()}}>Login</Button>
                 </div>
               </animated.div>
             )}
@@ -173,26 +212,26 @@ class App extends React.Component {
           aria-labelledby="form-dialog-title">
           <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
           <DialogContent>
-            <DialogContentText>
-              To subscribe to this website, please enter your email address here. We will send
-              updates occasionally.
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              label="ID"
-              type="email"
-              fullWidth
-            />
+            <video id='preview' autoPlay className="active"></video>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.loginClose} color="primary">
+            <Button onClick={this.loginClose} color='primary'>
               Cancel
             </Button>
-            <Button onClick={this.loginClose} color="primary">
-              Subscribe
-            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={this.state.myQRCodeOpen}
+          onClose={this.myQRCodeClose}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">MY QR CODE</DialogTitle>
+          <DialogContent>
+            <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.myQRCodeClose} color='primary'> Close </Button>
           </DialogActions>
         </Dialog>    
       </Fragment>
