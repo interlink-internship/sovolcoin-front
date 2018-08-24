@@ -81,8 +81,8 @@ class App extends React.Component {
       //localStorage.setItem('id', 'itleigns')
       //const id = localStorage.getItem('id')
       //console.log(id)
-      const j = await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`).then(x => x.json())
       console.log(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
+      await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
       //this.setState({balance: j.balance})
     }
     catch(e)
