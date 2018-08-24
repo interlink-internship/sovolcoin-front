@@ -184,7 +184,7 @@ class App extends React.Component {
             return (
               <div>
               <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
-              <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVL</Typography>
+              <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
               <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
               </div>
             )
