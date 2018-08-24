@@ -11,9 +11,9 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import TextField from '@material-ui/core/TextField'
+import Instascan from 'instascan'
+import QRCode from 'qrcode.react'
 
-//import IconButton from '@material-ui/core/IconButton'
-//import MenuIcon from '@material-ui/icons/Menu'
 import './App.css'
 
 const API_URI = 'http://internship-jp1.interlink.or.jp/api'
@@ -39,11 +39,18 @@ class App extends React.Component {
     super(props)
 
     this.state = {
+      id : 'yosiki',
+      key: '114514',
       balance: 200,
       immatureBalance: 50,
       loginOpen: false,
-      sendOpen: false
+      sendOpen: false,
+      myQRCodeOpen: false
     }
+  }
+
+  async componentDidMount()
+  {
   }
 
   async fetchBlance(e)
@@ -78,9 +85,30 @@ class App extends React.Component {
     }
   }
 
-  loginOpen = () =>
+  loginOpen = async () =>
   {
-    this.setState({ loginOpen: true })
+    try
+    {
+      this.setState({ loginOpen: true })
+
+      const cameras = await Instascan.Camera.getCameras()
+      if (cameras.length === 0)
+      {
+        console.error('No cameras found.')
+        return
+      }
+
+      let scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
+      scanner.addListener('scan', (content) =>
+      {
+        console.log(content)
+      })
+      scanner.start(cameras[0])
+    }
+    catch(e)
+    {
+      console.log(e)
+    }
   }
 
   loginClose = () =>
@@ -98,6 +126,16 @@ class App extends React.Component {
     console.log(this.state.amount)
     console.log(this.state.id)
     this.setState({ sendOpen: false })
+  }
+
+  myQRCodeOpen = () =>
+  {
+    this.setState({ myQRCodeOpen: true })
+  }
+
+  myQRCodeClose = () =>
+  {
+    this.setState({ myQRCodeOpen: false })
   }
 
   render()
@@ -118,6 +156,7 @@ class App extends React.Component {
           <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVL</Typography>
           <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
         </div>
+        <Button color='secondary' onClick={this.myQRCodeOpen} className='send' >MyQRCode</Button>
 
         <Dialog
           open={this.state.sendOpen}
@@ -164,26 +203,26 @@ class App extends React.Component {
         >
           <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
           <DialogContent>
-            <DialogContentText>
-              To subscribe to this website, please enter your email address here. We will send
-              updates occasionally.
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              label="ID"
-              type="email"
-              fullWidth
-            />
+            <video id='preview' autoPlay className="active"></video>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.loginClose} color="primary">
+            <Button onClick={this.loginClose} color='primary'>
               Cancel
             </Button>
-            <Button onClick={this.loginClose} color="primary">
-              Subscribe
-            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={this.state.myQRCodeOpen}
+          onClose={this.myQRCodeClose}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">MY QR CODE</DialogTitle>
+          <DialogContent>
+            <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.myQRCodeClose} color='primary'> Close </Button>
           </DialogActions>
         </Dialog>
       </div>
