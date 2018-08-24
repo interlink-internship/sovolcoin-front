@@ -19,7 +19,7 @@ import QRCode from 'qrcode.react'
 
 import './App.css'
 
-const API_URI = 'http://internship-jp1.interlink.or.jp/api'
+const API_URI = 'https://internship-jp1.interlink.or.jp/api'
 
 // Creates a spring with predefined animation slots
 const Sidebar = Keyframes.Spring({
