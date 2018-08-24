@@ -150,10 +150,6 @@ class App extends React.Component {
     this.sendMoney(this.state.target, this.state.amount)
     this.setState({ sendOpen: false })
   }
-  update = () => {
-    console.log('onUpdate')
-    this.setState({updateTime: new Date().getSeconds()})
-  }
 
   state = { open: undefined, updateTime: new Date().getSeconds() }
   toggle = () => this.setState(state => ({ open: !state.open }))
@@ -195,7 +191,6 @@ class App extends React.Component {
   {
     const {classes} = this.props
     const state = this.state.open === undefined ? 'peek' : this.state.open ? 'open' : 'close'
-    setInterval(this.update, 1000);
     return (
       <Fragment>
         <div className="title">
@@ -209,32 +204,51 @@ class App extends React.Component {
           {({ x }) => (
               <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
                 <div className="contents">
+                  <div className="name">
+                    Sovol Coin
+                  </div>
+
                   <div className="switch">
                     {(()=>{
                       if (this.state.id != null)
                       {
-                        return <Button color='inherit' onClick={this.logout}>Logout</Button>
+                          return <React.Fragment className="switchBox">
+                              <div className="qrCodeBox">
+                                <QRCode className="qrCode" renderAs='svg' value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+                              </div>
+                              <div className="logoutBox">
+                                <Button className="logio" variant="outlined" color="primary" onClick={this.logout}>Logout</Button>
+                              </div>
+                            </React.Fragment>
                       }
                       else
                       {
-                        return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+                        return <React.Fragment className="switchBox">
+                                <Button className="logio" variant="outlined" color="secondary" onClick={this.loginOpen}>
+                                  Login
+                                </Button>
+                              </React.Fragment>
                       }
-                  })()}
+                    })()}
                   </div>
+
+                  <div className="info">
                   {(() =>
                   {
                     if (this.state.id != null)
                     {
-                      return (
-                        <div>
-                        <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
-                        <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
-                        <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
-                        <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-                        </div>
-                      )
+                      return  <React.Fragment className="infoBox">
+                          <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
+                          <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+                          <Button className="send" variant="outlined" color="secondary" onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+                        </React.Fragment>
+                    } else {
+                      return <React.Fragment className="infoBox">
+
+                      </React.Fragment>
                     }
                   })()}
+                  </div>
                 </div>
               </animated.div>
             )}
