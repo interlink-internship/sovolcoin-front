@@ -38,29 +38,34 @@ class App extends React.Component {
   {
     super(props)
 
+    const id = localStorage.getItem('id') || null
+    const key = localStorage.getItem('key') || null
+
     this.state = {
-      id : 'yosiki',
-      key: '114514',
-      balance: 200,
-      immatureBalance: 50,
+      id : id,
+      key: key,
       loginOpen: false,
       sendOpen: false,
-      myQRCodeOpen: false
     }
   }
 
   async componentDidMount()
   {
+    this.timer = setInterval(()=> this.fetchBlance(), 5000)
   }
 
-  async fetchBlance(e)
+  componentWillUnmount() {
+    this.timer = null
+  }
+
+  async fetchBlance()
   {
     try
     {
-      localStorage.setItem('id', 'itleigns')
-      const id = localStorage.getItem('id')
-      console.log(id)
-      const j = await fetch(`${API_URI}/getbalance/${id}`).then(x => x.json())
+      //localStorage.setItem('id', 'itleigns')
+      //const id = localStorage.getItem('id')
+      //console.log(id)
+      const j = await fetch(`${API_URI}/getbalance/${this.state.id}`).then(x => x.json())
       this.setState({balance: j.balance})
     }
     catch(e)
@@ -73,11 +78,12 @@ class App extends React.Component {
   {
     try
     {
-      localStorage.setItem('id', 'itleigns')
-      const id = localStorage.getItem('id')
-      console.log(id)
-      const j = await fetch(`${API_URI}/sendmoney/${id}/${this.state.key}/${amount}/${target}`).then(x => x.json())
-      this.setState({balance: j.balance})
+      //localStorage.setItem('id', 'itleigns')
+      //const id = localStorage.getItem('id')
+      //console.log(id)
+      console.log(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
+      await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
+      //this.setState({balance: j.balance})
     }
     catch(e)
     {
@@ -98,12 +104,17 @@ class App extends React.Component {
         return
       }
 
-      let scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
+      const scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
       scanner.addListener('scan', (content) =>
       {
-        console.log(content)
+        const j = JSON.parse(content)
+        this.setState({id: j.id, key: j.key})
+        localStorage.setItem('id', j.id)
+        localStorage.setItem('key', j.key)
+        this.loginClose()
       })
       scanner.start(cameras[0])
+      this.scanner = scanner
     }
     catch(e)
     {
@@ -113,7 +124,19 @@ class App extends React.Component {
 
   loginClose = () =>
   {
+    if (this.scanner)
+    {
+      this.scanner.stop()
+      this.scanner = null
+    }
     this.setState({ loginOpen: false })
+  }
+
+  logout = () =>
+  {
+    this.setState({id: null, key: null})
+    localStorage.removeItem('id')
+    localStorage.removeItem('key')
   }
 
   sendOpen = () =>
@@ -123,19 +146,13 @@ class App extends React.Component {
 
   sendClose = () =>
   {
-    console.log(this.state.amount)
-    console.log(this.state.id)
+    this.sendMoney(this.state.target, this.state.amount)
     this.setState({ sendOpen: false })
   }
 
-  myQRCodeOpen = () =>
+  sendCancel = () =>
   {
-    this.setState({ myQRCodeOpen: true })
-  }
-
-  myQRCodeClose = () =>
-  {
-    this.setState({ myQRCodeOpen: false })
+    this.setState({ sendOpen: false })
   }
 
   render()
@@ -148,15 +165,32 @@ class App extends React.Component {
             <Typography variant='title' color='inherit' className={classes.flex}>
                 SovoloCoin
             </Typography>
-            <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+            {(()=>{
+              if (this.state.id != null)
+              {
+                return <Button color='inherit' onClick={this.logout}>Logout</Button>
+              }
+              else
+              {
+                return <Button color='inherit' onClick={this.loginOpen}>Login</Button>
+              }
+            })()}
           </Toolbar>
         </AppBar>
-        <div className='container'>
-          <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
-          <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVL</Typography>
-          <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
-        </div>
-        <Button color='secondary' onClick={this.myQRCodeOpen} className='send' >MyQRCode</Button>
+        {(() =>
+        {
+          if (this.state.id != null)
+          {
+            return (
+              <div>
+              <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
+              <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
+              <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+              <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+              </div>
+            )
+          }
+        })()}
 
         <Dialog
           open={this.state.sendOpen}
@@ -168,12 +202,12 @@ class App extends React.Component {
             <TextField
               autoFocus
               margin='dense'
-              id='id'
-              label='id'
+              id='target'
+              label='target'
               type='text'
               fullWidth
-              value={this.state.id}
-              onChange={(e) => this.setState({id: e.target.value})}
+              value={this.state.target}
+              onChange={(e) => this.setState({target: e.target.value})}
             />
             <TextField
               autoFocus
@@ -187,7 +221,7 @@ class App extends React.Component {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.sendClose} color='primary'>
+            <Button onClick={this.sendCancel} color='primary'>
               Cancel
             </Button>
             <Button onClick={this.sendClose} color='primary'>
@@ -201,7 +235,7 @@ class App extends React.Component {
           onClose={this.loginClose}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+          <DialogTitle id="form-dialog-title">Login</DialogTitle>
           <DialogContent>
             <video id='preview' autoPlay className="active"></video>
           </DialogContent>
@@ -212,19 +246,6 @@ class App extends React.Component {
           </DialogActions>
         </Dialog>
 
-        <Dialog
-          open={this.state.myQRCodeOpen}
-          onClose={this.myQRCodeClose}
-          aria-labelledby="form-dialog-title"
-        >
-          <DialogTitle id="form-dialog-title">MY QR CODE</DialogTitle>
-          <DialogContent>
-            <QRCode value={JSON.stringify({id: this.state.id, key: this.state.key})} />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.myQRCodeClose} color='primary'> Close </Button>
-          </DialogActions>
-        </Dialog>
       </div>
     )
   }
