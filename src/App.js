@@ -155,7 +155,6 @@ class App extends React.Component {
               <p className="text" > Sovol Coin </p>
           </div>
         </div>
-        <Button color='secondary' onClick={this.myQRCodeOpen} className='send' >MyQRCode</Button>
 
         <Sidebar native state={state}>
           {({ x }) => (
@@ -163,6 +162,7 @@ class App extends React.Component {
                 <div className="contents">
                   <p>{this.state.balance}</p>
                   <p>{this.state.updateTime}</p>
+                  <Button color='secondary' onClick={this.myQRCodeOpen} className='send'>MyQRCode</Button>
                   <Button color='secondary' onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
                   <Button color='inherit' onClick={() => {this.loginOpen()}}>Login</Button>
                 </div>

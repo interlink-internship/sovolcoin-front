@@ -23,10 +23,8 @@ body,
 .contents {
   overflow: hidden;
 
-
-
-  padding-top: 10vw;
-  padding-bottom: 10vw;
+  padding-top: 5vw;
+  padding-bottom: 5vw;
 
   /*centering*/
   margin: auto;
