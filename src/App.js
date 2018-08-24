@@ -44,7 +44,6 @@ class App extends React.Component {
     this.state = {
       id : id,
       key: key,
-      balance: 200,
       loginOpen: false,
       sendOpen: false,
     }
@@ -52,7 +51,11 @@ class App extends React.Component {
 
   async componentDidMount()
   {
-    this.fetchBlance()
+    this.timer = setInterval(()=> this.fetchBlance(), 5000)
+  }
+
+  componentWillUnmount() {
+    this.timer = null
   }
 
   async fetchBlance()
