@@ -14,7 +14,7 @@ import TextField from '@material-ui/core/TextField'
 import { Keyframes, animated, config } from 'react-spring'
 import delay from 'delay'
 import 'antd/dist/antd.css'
-import Instascan from 'instascan'
+import QrReader from 'react-qr-reader'
 import QRCode from 'qrcode.react'
 
 import './App.css'
@@ -36,7 +36,8 @@ const Sidebar = Keyframes.Spring({
   }
 })
 
-class App extends React.Component {
+class App extends React.Component
+{
   constructor(props){
     super(props)
 
@@ -56,7 +57,8 @@ class App extends React.Component {
     this.timer = setInterval(()=> this.fetchBlance(), 5000)
   }
 
-  componentWillUnmount() {
+  componentWillUnmount()
+  {
     this.timer = null
   }
 
@@ -64,9 +66,6 @@ class App extends React.Component {
   {
     try
     {
-      //localStorage.setItem('id', 'itleigns')
-      //const id = localStorage.getItem('id')
-      //console.log(id)
       const j = await fetch(`${API_URI}/getbalance/${this.state.id}`).then(x => x.json())
       this.setState({balance: j.balance})
     }
@@ -80,42 +79,7 @@ class App extends React.Component {
   {
     try
     {
-      //localStorage.setItem('id', 'itleigns')
-      //const id = localStorage.getItem('id')
-      //console.log(id)
-      console.log(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
       await fetch(`${API_URI}/sendmoneytoaccount/${this.state.id}/${this.state.key}/${amount}/${target}`)
-      //this.setState({balance: j.balance})
-    }
-    catch(e){
-      console.log(e)
-    }
-  }
-
-  loginOpen = async () =>
-  {
-    try
-    {
-      this.setState({ loginOpen: true })
-
-      const cameras = await Instascan.Camera.getCameras()
-      if (cameras.length === 0)
-      {
-        console.error('No cameras found.')
-        return
-      }
-
-      const scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
-      scanner.addListener('scan', (content) =>
-      {
-        const j = JSON.parse(content)
-        this.setState({id: j.id, key: j.key})
-        localStorage.setItem('id', j.id)
-        localStorage.setItem('key', j.key)
-        this.loginClose()
-      })
-      scanner.start(cameras[0])
-      this.scanner = scanner
     }
     catch(e)
     {
@@ -123,14 +87,31 @@ class App extends React.Component {
     }
   }
 
+  loginOpen = async () =>
+  {
+    this.setState({ loginOpen: true })
+  }
+
   loginClose = () =>
   {
-    if (this.scanner)
-    {
-      this.scanner.stop()
-      this.scanner = null
-    }
     this.setState({ loginOpen: false })
+  }
+
+  loginHandleScan = (content) =>
+  {
+    if (content)
+    {
+      const j = JSON.parse(content)
+      this.setState({id: j.id, key: j.key})
+      localStorage.setItem('id', j.id)
+      localStorage.setItem('key', j.key)
+      this.loginClose()
+    }
+  }
+
+  loginHandleError = (err) =>
+  {
+    console.error(err)
   }
 
   logout = () =>
@@ -151,41 +132,44 @@ class App extends React.Component {
     this.setState({ sendOpen: false })
   }
 
-  state = { open: undefined, updateTime: new Date().getSeconds() }
-  toggle = () => this.setState(state => ({ open: !state.open }))
-
-  loginClose = () =>
-  {
-    if (this.scanner)
-    {
-      this.scanner.stop()
-      this.scanner = null
-    }
-    this.setState({ loginOpen: false })
-  }
-
-  logout = () =>
-  {
-    this.setState({id: null, key: null})
-    localStorage.setItem('id', null)
-    localStorage.setItem('key', null)
-  }
-
-  sendOpen = () =>
-  {
-    this.setState({ sendOpen: true })
-  }
-
-  sendClose = () =>
-  {
-    this.sendMoney(this.state.target, this.state.amount)
-    this.setState({ sendOpen: false })
-  }
-
   sendCancel = () =>
   {
     this.setState({ sendOpen: false })
   }
+
+  qrSendOpen = () =>
+  {
+    this.setState({ qrSendOpen: true })
+  }
+
+  qrSendClose = () =>
+  {
+    this.sendMoney(this.state.target, this.state.amount)
+    this.sendOpen()
+    this.setState({ qrSendOpen: false })
+  }
+
+  qrSendCancel = () =>
+  {
+    this.setState({ qrSendOpen: false })
+  }
+
+  qrHandleScan = (content) =>
+  {
+    if (content)
+    {
+      const j = JSON.parse(content)
+      this.setState({target: j.id})
+      this.qrSendClose()
+      this.sendOpen()
+    }
+  }
+
+  qrHandleError = (err) =>
+  {
+    console.error(err)
+  }
+
 
   render()
   {
@@ -240,7 +224,8 @@ class App extends React.Component {
                       return  <React.Fragment className="infoBox">
                           <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
                           <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
-                          <Button className="send" variant="outlined" color="secondary" onClick={()=>{this.fetchBlance();this.sendOpen();}} className='send' >Send</Button>
+                          <Button className="send" variant="outlined" color="secondary" onClick={this.qrSendOpen} className='send' >QR Pay</Button>
+                          <Button className="qrsend" variant="outlined" color="secondary" onClick={this.sendOpen} className='send' >Send</Button>
                         </React.Fragment>
                     } else {
                       return <React.Fragment className="infoBox">
@@ -289,15 +274,38 @@ class App extends React.Component {
               Send
             </Button>
           </DialogActions>
-        </Dialog>  
+        </Dialog>
+
+        <Dialog
+          open={this.state.qrSendOpen}
+          onClose={this.qrSendClose}
+          aria-labelledby="form-dialog-title">
+          <DialogTitle id="form-dialog-title">QR Pay</DialogTitle>
+          <DialogContent>
+            <QrReader
+              delay={500}
+              onError={this.qrHandleError}
+              onScan={this.qrHandleScan}
+              />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.qrSendClose} color='primary'>
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <Dialog
           open={this.state.loginOpen}
           onClose={this.loginClose}
           aria-labelledby="form-dialog-title">
-
           <DialogTitle id="form-dialog-title">Login</DialogTitle>
           <DialogContent>
-            <video id='preview' autoPlay className="active"></video>
+            <QrReader
+              delay={500}
+              onError={this.loginHandleError}
+              onScan={this.loginHandleScan}
+              />
           </DialogContent>
           <DialogActions>
             <Button onClick={this.loginClose} color='primary'>
