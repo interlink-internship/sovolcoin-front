@@ -173,6 +173,7 @@ class App extends React.Component
 
   render()
   {
+
     const {classes} = this.props
     const state = this.state.open === undefined ? 'peek' : this.state.open ? 'open' : 'close'
     return (
@@ -242,7 +243,10 @@ class App extends React.Component
          <Dialog
           open={this.state.sendOpen}
           onClose={this.sendClose}
-          aria-labelledby="form-dialog-title">
+          aria-labelledby="form-dialog-title"
+          fullWidth={true}
+          autoDetectWindowHeight={false} 
+          autoScrollBodyContent={false}>
           <DialogTitle id="form-dialog-title">Transfer</DialogTitle>
           <DialogContent>
             <TextField
@@ -279,14 +283,20 @@ class App extends React.Component
         <Dialog
           open={this.state.qrSendOpen}
           onClose={this.qrSendClose}
-          aria-labelledby="form-dialog-title">
+          aria-labelledby="form-dialog-title"
+          style={{width: '100%', height: '100%'}}
+          fullWidth={true}
+          autoDetectWindowHeight={false} 
+          autoScrollBodyContent={false}
+          >
           <DialogTitle id="form-dialog-title">QR Pay</DialogTitle>
           <DialogContent>
             <QrReader
+              className='qrReader'
               delay={500}
               onError={this.qrHandleError}
               onScan={this.qrHandleScan}
-              />
+              style={{width: '100%', height: '100%'}}/>
           </DialogContent>
           <DialogActions>
             <Button onClick={this.qrSendClose} color='primary'>
@@ -298,7 +308,12 @@ class App extends React.Component
         <Dialog
           open={this.state.loginOpen}
           onClose={this.loginClose}
-          aria-labelledby="form-dialog-title">
+          modal = {true}
+          aria-labelledby="form-dialog-title"
+          fullWidth={true}
+          autoDetectWindowHeight={false} 
+          autoScrollBodyContent={false}
+          >
           <DialogTitle id="form-dialog-title">Login</DialogTitle>
           <DialogContent>
             <QrReader
