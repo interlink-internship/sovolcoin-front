@@ -45,6 +45,7 @@ class App extends React.Component
     const key = localStorage.getItem('key') || null
 
     this.state = {
+      balance: 0,
       id : id,
       key: key,
       loginOpen: false,
@@ -144,8 +145,6 @@ class App extends React.Component
 
   qrSendClose = () =>
   {
-    this.sendMoney(this.state.target, this.state.amount)
-    this.sendOpen()
     this.setState({ qrSendOpen: false })
   }
 
@@ -181,7 +180,6 @@ class App extends React.Component
         <div className="title">
           <div className="center">
               <img src={process.env.PUBLIC_URL + '/logo.png'} alt='logo' className='icon' />
-              <p className="text" > Sovol Coin </p>
           </div>
         </div>
 
@@ -189,26 +187,30 @@ class App extends React.Component
           {({ x }) => (
               <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
                 <div className="contents">
-                  <div className="name">
-                    Sovol Coin
-                  </div>
+                  <Typography variant='display1' color='inherit' align='center' className='userID'>SovolCoin </Typography>
 
                   <div className="switch">
                     {(()=>{
                       if (this.state.id != null)
                       {
                           return <React.Fragment className="switchBox">
+                             <div className="stringGroup">
+                              <Typography variant='headline' color='inherit' align='center' className='userID'>ID: {this.state.id} </Typography>
+                            </div>
                               <div className="qrCodeBox">
                                 <QRCode className="qrCode" renderAs='svg' value={JSON.stringify({id: this.state.id, key: this.state.key})} />
                               </div>
                               <div className="logoutBox">
-                                <Button className="logio" variant="outlined" color="primary" onClick={this.logout}>Logout</Button>
+                                <Button className="logio" variant="outlined" color="primary" style={{marginTop: '1vw'}} onClick={this.logout}>Logout</Button>
                               </div>
                             </React.Fragment>
                       }
                       else
                       {
                         return <React.Fragment className="switchBox">
+                                <div className="stringGroup"><Typography variant='headline' color='inherit' align='center' className='emptyUserId'>&nbsp;</Typography></div>
+                                <div className="emptyQrCodeBox">
+                                </div>
                                 <Button className="logio" variant="outlined" color="secondary" onClick={this.loginOpen}>
                                   Login
                                 </Button>
@@ -223,14 +225,16 @@ class App extends React.Component
                     if (this.state.id != null)
                     {
                       return  <React.Fragment className="infoBox">
-                          <Typography variant='title' color='inherit' className='userID'>ID {this.state.id} </Typography>
-                          <Typography variant='title' color='inherit' className='balance'>BALANCE {this.state.balance} SVC</Typography>
-                          <Button className="send" variant="outlined" color="secondary" onClick={this.qrSendOpen} className='send' >QR Pay</Button>
-                          <Button className="qrsend" variant="outlined" color="secondary" onClick={this.sendOpen} className='send' >Send</Button>
+                          <div className="stringGroup">
+                            <Typography variant='title' color='textPrimary' align='center' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+                          </div>
+                          <div className="buttonGroup">
+                            <Button className="button" variant="outlined" style={{width: '48%', float: 'left'}} color="primary" onClick={this.qrSendOpen} >QR Pay</Button>
+                            <Button className="button" variant="outlined" style={{width: '48%', float: 'right'}} color="secondary" onClick={this.sendOpen} >Send</Button>
+                          </div>
                         </React.Fragment>
                     } else {
                       return <React.Fragment className="infoBox">
-
                       </React.Fragment>
                     }
                   })()}
