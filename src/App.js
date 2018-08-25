@@ -187,7 +187,7 @@ class App extends React.Component
           {({ x }) => (
               <animated.div className="sideBar" style={{ transform: x.interpolate(x => `translate3d(${x}%,0,0)`) }}>
                 <div className="contents">
-                  <Typography variant='display1' color='inherit' align='center' className='userID'>SovolCoin </Typography>
+                  <Typography variant='headline' color='inherit' align='center' className='userID'>SovolCoin</Typography>
 
                   <div className="switch">
                     {(()=>{
@@ -226,7 +226,7 @@ class App extends React.Component
                     {
                       return  <React.Fragment className="infoBox">
                           <div className="stringGroup">
-                            <Typography variant='title' color='textPrimary' align='center' className='balance'>BALANCE {this.state.balance} SVC</Typography>
+                            <Typography variant='title' color='textPrimary' align='center' className='balance'>{this.state.balance} SVC</Typography>
                           </div>
                           <div className="buttonGroup">
                             <Button className="button" variant="outlined" style={{width: '48%', float: 'left'}} color="primary" onClick={this.qrSendOpen} >QR Pay</Button>

@@ -8,9 +8,9 @@ body,
   width: 100%;
   height: 100%;
   background: #2b4b64;
+  /* 以下を消すとスクロールできるようになる*/
   overflow: hidden;
 }
-
 
 .title {
   width: 100%;
@@ -82,19 +82,14 @@ div.center .text {
   margin-bottom: 5vw;
 }
 
-.switch {
+.switch, .info {
   height: auto;
-  width: 70%;
+  /*widthを小さくすると全体の縦描画も小さくなる*/
+  width: 65%;
   margin:0 auto;
 
-  margin-top: 5vw;
+  margin-top: 2vw;
   margin-bottom: 5vw;
-}
-
-.info {
-  height: auto;
-  width: 70%;
-  margin:0 auto;
 }
 
 .switchBox {
@@ -135,11 +130,6 @@ div.center .text {
 .stringGroup {
   width: 100%;
   margin-bottom: 1vw;
-}
-
-.userId {
-  margin:0 auto;
-  text-align: center;
 }
 
 .emptyUserId {
